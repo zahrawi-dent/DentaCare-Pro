@@ -2,7 +2,7 @@ import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
-import { applyDbMigrations } from './db'
+import { applyDbMigrations } from './db/index'
 import { dentalOps } from './db'
 
 function createWindow(): void {

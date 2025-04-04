@@ -16,6 +16,8 @@
     "build": "npm run typecheck && electron-vite build",
     "rebuild": "electron-rebuild",
     "postinstall": "electron-builder install-app-deps",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
     "build:unpack": "npm run build && electron-builder --dir",
     "build:win": "npm run build && electron-builder --win",
     "build:mac": "electron-vite build && electron-builder --mac",

@@ -3,7 +3,6 @@ import { drizzle } from 'drizzle-orm/better-sqlite3'
 import path from 'path'
 import { app } from 'electron'
 import { DentalOperations } from './operations.js'
-import { initializeDatabase } from './migrate.js'
 import * as schema from './schema.js'
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator'
 
@@ -12,6 +11,7 @@ const userDataPath = app.getPath('userData')
 const dbPath = path.join(userDataPath, 'database.db')
 
 // Initialize the better-sqlite3 database instance
+// NOTE: ignore error
 const sqlite = new Database(dbPath)
 
 // Initialize Drizzle
@@ -21,9 +21,10 @@ const db = drizzle(sqlite, { schema: schema, logger: true })
 sqlite.pragma('journal_mode = WAL;')
 
 // Create an instance of dental operations
-const dentalOps = new DentalOperations(db)
+export const dentalOps = new DentalOperations(db)
 
 export function applyDbMigrations(): void {
+  console.log('Initializing database...')
   console.log('Applying database migrations...')
   try {
     // Point to the folder where migrations are stored *within your packaged app*
@@ -40,6 +41,5 @@ export function applyDbMigrations(): void {
     // Handle error appropriately - maybe notify user or quit app
     // You might want to backup the DB before migrating in critical apps
   }
+  console.log('Database initialization complete.')
 }
-
-export { db, sqlite, dentalOps, initializeDatabase }
