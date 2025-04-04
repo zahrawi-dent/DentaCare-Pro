@@ -31,13 +31,15 @@ CREATE TABLE `dentists` (
 	`last_name` text NOT NULL,
 	`specialization` text,
 	`phone` text NOT NULL,
-	`email` text NOT NULL,
+	`email` text(255) NOT NULL,
 	`license_number` text NOT NULL,
 	`notes` text,
 	`created_at` integer DEFAULT (unixepoch()) NOT NULL,
 	`updated_at` integer DEFAULT (unixepoch()) NOT NULL
 );
 --> statement-breakpoint
+CREATE UNIQUE INDEX `dentist_email_idx` ON `dentists` (`email`);--> statement-breakpoint
+CREATE UNIQUE INDEX `dentist_phone_idx` ON `dentists` (`phone`);--> statement-breakpoint
 CREATE TABLE `documents` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`patient_id` integer NOT NULL,
@@ -76,8 +78,8 @@ CREATE TABLE `patients` (
 	`date_of_birth` text NOT NULL,
 	`gender` text NOT NULL,
 	`phone` text NOT NULL,
-	`email` text,
-	`address` text,
+	`email` text(255),
+	`address` text(255),
 	`insurance_provider` text,
 	`insurance_number` text,
 	`medical_history` text,
@@ -87,6 +89,9 @@ CREATE TABLE `patients` (
 	`updated_at` integer DEFAULT (unixepoch()) NOT NULL
 );
 --> statement-breakpoint
+CREATE UNIQUE INDEX `patient_email_idx` ON `patients` (`email`);--> statement-breakpoint
+CREATE UNIQUE INDEX `patient_phone_idx` ON `patients` (`phone`);--> statement-breakpoint
+CREATE INDEX `name_idx` ON `patients` (`first_name`,`last_name`);--> statement-breakpoint
 CREATE TABLE `payments` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`patient_id` integer NOT NULL,
@@ -138,11 +143,11 @@ CREATE TABLE `users` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`username` text NOT NULL,
 	`password_hash` text NOT NULL,
-	`role` text NOT NULL,
+	`role` text DEFAULT 'viewer' NOT NULL,
 	`dentist_id` integer,
 	`first_name` text NOT NULL,
 	`last_name` text NOT NULL,
-	`email` text,
+	`email` text(255),
 	`last_login` integer,
 	`active` integer DEFAULT true NOT NULL,
 	`created_at` integer DEFAULT (unixepoch()) NOT NULL,

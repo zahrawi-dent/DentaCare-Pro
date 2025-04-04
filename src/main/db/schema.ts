@@ -1,12 +1,13 @@
 // db/schema.ts
 import { relations, sql } from 'drizzle-orm'
-import { sqliteTable, text, integer, real } from 'drizzle-orm/sqlite-core'
+import { sqliteTable, text, integer, real, index, uniqueIndex } from 'drizzle-orm/sqlite-core'
 
 // Define TypeScript interfaces for each table with null handling
 export interface Patient {
   id: number
   firstName: string
   lastName: string
+  // TODO: use age(integer) instead?
   dateOfBirth: string
   gender: string
   phone: string
@@ -146,45 +147,67 @@ export interface User {
 
 // Patients table
 // TODO: add last visit?
-export const patients = sqliteTable('patients', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  firstName: text('first_name').notNull(),
-  lastName: text('last_name').notNull(),
-  dateOfBirth: text('date_of_birth').notNull(),
-  gender: text('gender').notNull(),
-  phone: text('phone').notNull(),
-  email: text('email'),
-  address: text('address'),
-  insuranceProvider: text('insurance_provider'),
-  insuranceNumber: text('insurance_number'),
-  medicalHistory: text('medical_history'),
-  allergies: text('allergies'),
-  notes: text('notes'),
-  createdAt: integer('created_at', { mode: 'timestamp' })
-    .notNull()
-    .default(sql`(unixepoch())`),
-  updatedAt: integer('updated_at', { mode: 'timestamp' })
-    .notNull()
-    .default(sql`(unixepoch())`)
-})
+export const patients = sqliteTable(
+  'patients',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    firstName: text('first_name').notNull(),
+    lastName: text('last_name').notNull(),
+    // TODO: use age(integer) instead?
+    dateOfBirth: text('date_of_birth').notNull(),
+    gender: text('gender').notNull(),
+    phone: text('phone').notNull(),
+    email: text('email', { length: 255 }),
+    address: text('address', { length: 255 }),
+    insuranceProvider: text('insurance_provider'),
+    insuranceNumber: text('insurance_number'),
+    medicalHistory: text('medical_history'),
+    allergies: text('allergies'),
+    notes: text('notes'),
+    createdAt: integer('created_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`),
+    updatedAt: integer('updated_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`)
+  },
+  (table) => [
+    // make index for email, phone
+    uniqueIndex('patient_email_idx').on(table.email),
+    uniqueIndex('patient_phone_idx').on(table.phone),
+
+    // make index on first name, last name
+    // you can use uniqueIndex to make firstname+lastname unique or any other field
+    index('name_idx').on(table.firstName, table.lastName)
+  ]
+)
 
 // Dentists table
-export const dentists = sqliteTable('dentists', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  firstName: text('first_name').notNull(),
-  lastName: text('last_name').notNull(),
-  specialization: text('specialization'),
-  phone: text('phone').notNull(),
-  email: text('email').notNull(),
-  licenseNumber: text('license_number').notNull(),
-  notes: text('notes'),
-  createdAt: integer('created_at', { mode: 'timestamp' })
-    .notNull()
-    .default(sql`(unixepoch())`),
-  updatedAt: integer('updated_at', { mode: 'timestamp' })
-    .notNull()
-    .default(sql`(unixepoch())`)
-})
+export const dentists = sqliteTable(
+  'dentists',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    firstName: text('first_name').notNull(),
+    lastName: text('last_name').notNull(),
+    // TODO: make it enum?; reference user role
+    specialization: text('specialization'),
+    phone: text('phone').notNull(),
+    email: text('email', { length: 255 }).notNull(),
+    licenseNumber: text('license_number').notNull(),
+    notes: text('notes'),
+    createdAt: integer('created_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`),
+    updatedAt: integer('updated_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`)
+  },
+  (table) => [
+    // make index for email, phone
+    uniqueIndex('dentist_email_idx').on(table.email),
+    uniqueIndex('dentist_phone_idx').on(table.phone)
+  ]
+)
 
 // Appointments table
 export const appointments = sqliteTable('appointments', {
@@ -333,15 +356,26 @@ export const documents = sqliteTable('documents', {
 })
 
 // Users table (for app login)
+
+// 1. Define the possible roles using 'as const' for type safety
+export const userRoles = ['admin', 'editor', 'viewer'] as const
+
+// Optional: Define a TypeScript type for the role for easier use elsewhere
+export type UserRole = typeof users.$inferSelect.role // -> 'admin' | 'editor' | 'viewer'
+export type NewUser = typeof users.$inferInsert
+
 export const users = sqliteTable('users', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   username: text('username').notNull().unique(),
   passwordHash: text('password_hash').notNull(),
-  role: text('role').notNull(), // admin, dentist, reception, etc.
+  // 2. Define the role column using text() with the enum option
+  role: text('role', { enum: userRoles }) // Drizzle handles the CHECK constraint
+    .notNull()
+    .default('viewer'), // Optionally set a default role
   dentistId: integer('dentist_id').references(() => dentists.id), // If user is a dentist
   firstName: text('first_name').notNull(),
   lastName: text('last_name').notNull(),
-  email: text('email').unique(),
+  email: text('email', { length: 255 }).unique(),
   lastLogin: integer('last_login', { mode: 'timestamp' }),
   active: integer('active', { mode: 'boolean' }).notNull().default(true),
   createdAt: integer('created_at', { mode: 'timestamp' })

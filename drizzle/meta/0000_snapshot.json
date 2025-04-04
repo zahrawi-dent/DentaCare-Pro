@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "e8978041-ff69-4b85-9edf-9096580bd2d5",
+  "id": "c7217660-31e6-4d4a-8ac0-67cd379d509d",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "appointments": {
@@ -236,7 +236,7 @@
         },
         "email": {
           "name": "email",
-          "type": "text",
+          "type": "text(255)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
@@ -272,7 +272,22 @@
           "default": "(unixepoch())"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "dentist_email_idx": {
+          "name": "dentist_email_idx",
+          "columns": [
+            "email"
+          ],
+          "isUnique": true
+        },
+        "dentist_phone_idx": {
+          "name": "dentist_phone_idx",
+          "columns": [
+            "phone"
+          ],
+          "isUnique": true
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
@@ -533,14 +548,14 @@
         },
         "email": {
           "name": "email",
-          "type": "text",
+          "type": "text(255)",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
         },
         "address": {
           "name": "address",
-          "type": "text",
+          "type": "text(255)",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
@@ -597,7 +612,30 @@
           "default": "(unixepoch())"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "patient_email_idx": {
+          "name": "patient_email_idx",
+          "columns": [
+            "email"
+          ],
+          "isUnique": true
+        },
+        "patient_phone_idx": {
+          "name": "patient_phone_idx",
+          "columns": [
+            "phone"
+          ],
+          "isUnique": true
+        },
+        "name_idx": {
+          "name": "name_idx",
+          "columns": [
+            "first_name",
+            "last_name"
+          ],
+          "isUnique": false
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
@@ -968,7 +1006,8 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false
+          "autoincrement": false,
+          "default": "'viewer'"
         },
         "dentist_id": {
           "name": "dentist_id",
@@ -993,7 +1032,7 @@
         },
         "email": {
           "name": "email",
-          "type": "text",
+          "type": "text(255)",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
