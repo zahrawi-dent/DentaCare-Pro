@@ -1,5 +1,5 @@
 import { createSignal, onMount, For, JSX } from 'solid-js'
-import { useParams } from '@solidjs/router'
+import { A, useParams } from '@solidjs/router'
 import { mockApi } from '../mockApi'
 import { Appointment, Invoice, Patient, Treatment } from '../types'
 
@@ -129,9 +129,13 @@ export default function PatientDetails(): JSX.Element {
                 <button class="mr-3 px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
                   Edit Patient
                 </button>
-                <button class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">
+                {/* TODO: make the patient automatically selected, pass and id? */}
+                <A
+                  href="/new-appointment"
+                  class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
+                >
                   New Appointment
-                </button>
+                </A>
               </div>
             </div>
           </div>
@@ -145,8 +149,8 @@ export default function PatientDetails(): JSX.Element {
                     <button
                       onClick={() => setActiveTab(tab.id)}
                       class={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab() === tab.id
-                          ? 'border-indigo-500 text-indigo-600'
-                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                        ? 'border-indigo-500 text-indigo-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                         }`}
                     >
                       {tab.label}
@@ -283,10 +287,10 @@ export default function PatientDetails(): JSX.Element {
                             <td class="px-6 py-4 whitespace-nowrap">
                               <span
                                 class={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${appointment.status === 'Confirmed'
-                                    ? 'bg-green-100 text-green-800'
-                                    : appointment.status === 'Pending'
-                                      ? 'bg-yellow-100 text-yellow-800'
-                                      : 'bg-red-100 text-red-800'
+                                  ? 'bg-green-100 text-green-800'
+                                  : appointment.status === 'Pending'
+                                    ? 'bg-yellow-100 text-yellow-800'
+                                    : 'bg-red-100 text-red-800'
                                   }`}
                               >
                                 {appointment.status}
@@ -443,10 +447,10 @@ export default function PatientDetails(): JSX.Element {
                             <td class="px-6 py-4 whitespace-nowrap">
                               <span
                                 class={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${invoice.status === 'Paid'
-                                    ? 'bg-green-100 text-green-800'
-                                    : invoice.status === 'Pending'
-                                      ? 'bg-yellow-100 text-yellow-800'
-                                      : 'bg-red-100 text-red-800'
+                                  ? 'bg-green-100 text-green-800'
+                                  : invoice.status === 'Pending'
+                                    ? 'bg-yellow-100 text-yellow-800'
+                                    : 'bg-red-100 text-red-800'
                                   }`}
                               >
                                 {invoice.status}

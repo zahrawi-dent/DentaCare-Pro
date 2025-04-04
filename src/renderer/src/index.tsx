@@ -4,6 +4,10 @@ import { Route, HashRouter } from '@solidjs/router'
 import './assets/main.css'
 import MainLayout from './layouts/MainLayout'
 import { lazy } from 'solid-js'
+import RegisterPatient from './pages/Patients/RegisterPatient'
+import NewAppointment from './pages/Patients/NewAppointment'
+import CreateInvoice from './pages/Patients/CreateInvoice'
+import ViewSchedule from './pages/ViewSchedule'
 
 const Dashboard = lazy(() => import('./pages/Dashboard'))
 const PatientDetails = lazy(() => import('./pages/PatientDetails'))
@@ -31,6 +35,11 @@ if (rootElement) {
           <Route path="/appointments" component={Appointments} />
           <Route path="/billing" component={Billing} />
           <Route path="/settings" component={Settings} />
+          <Route path="/register-patient" component={RegisterPatient} />
+          <Route path="/new-appointment" component={NewAppointment} />
+          <Route path="/create-invoice" component={CreateInvoice} />
+          <Route path="/view-schedule" component={ViewSchedule} />
+          {/* <Route path="/view-schedule" component={ViewSchedule} /> */}
         </Route>
         <Route path="*" component={NotFound} />
       </HashRouter>

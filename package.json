@@ -15,6 +15,7 @@
     "dev": "electron-vite dev",
     "build": "npm run typecheck && electron-vite build",
     "rebuild": "electron-rebuild",
+    "rebuild2": "npx electron-rebuild -f -w better-sqlite3",
     "postinstall": "electron-builder install-app-deps",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",

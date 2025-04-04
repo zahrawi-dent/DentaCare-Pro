@@ -145,6 +145,7 @@ export interface User {
 }
 
 // Patients table
+// TODO: add last visit?
 export const patients = sqliteTable('patients', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   firstName: text('first_name').notNull(),

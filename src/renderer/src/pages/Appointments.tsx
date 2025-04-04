@@ -1,7 +1,9 @@
 import { createSignal, onMount, For, JSX } from 'solid-js'
 import { Appointment } from '../types'
 import { mockApi } from '../mockApi'
+import { A } from '@solidjs/router'
 
+// TODO: appoints and view schedule. what to use?
 export default function Appointments(): JSX.Element {
   const [appointments, setAppointments] = createSignal<Appointment[]>([])
   const [selectedDate, setSelectedDate] = createSignal(new Date().toISOString().split('T')[0])
@@ -26,9 +28,12 @@ export default function Appointments(): JSX.Element {
     <div>
       <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-semibold text-gray-900">Appointments</h1>
-        <button class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">
+        <A
+          href="/new-appointment"
+          class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+        >
           New Appointment
-        </button>
+        </A>
       </div>
 
       {/* Calendar Controls */}
@@ -78,8 +83,8 @@ export default function Appointments(): JSX.Element {
             <button
               onClick={() => setView('day')}
               class={`px-4 py-2 text-sm font-medium ${view() === 'day'
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-white text-gray-700 hover:bg-gray-50'
+                ? 'bg-indigo-600 text-white'
+                : 'bg-white text-gray-700 hover:bg-gray-50'
                 } border border-gray-300 rounded-l-md`}
             >
               Day
@@ -87,8 +92,8 @@ export default function Appointments(): JSX.Element {
             <button
               onClick={() => setView('week')}
               class={`px-4 py-2 text-sm font-medium ${view() === 'week'
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-white text-gray-700 hover:bg-gray-50'
+                ? 'bg-indigo-600 text-white'
+                : 'bg-white text-gray-700 hover:bg-gray-50'
                 } border-t border-b border-r border-gray-300`}
             >
               Week
@@ -96,8 +101,8 @@ export default function Appointments(): JSX.Element {
             <button
               onClick={() => setView('month')}
               class={`px-4 py-2 text-sm font-medium ${view() === 'month'
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-white text-gray-700 hover:bg-gray-50'
+                ? 'bg-indigo-600 text-white'
+                : 'bg-white text-gray-700 hover:bg-gray-50'
                 } border-t border-b border-r border-gray-300 rounded-r-md`}
             >
               Month
@@ -152,10 +157,10 @@ export default function Appointments(): JSX.Element {
                                   </div>
                                   <span
                                     class={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${appointment.status === 'Confirmed'
-                                        ? 'bg-green-100 text-green-800'
-                                        : appointment.status === 'Pending'
-                                          ? 'bg-yellow-100 text-yellow-800'
-                                          : 'bg-red-100 text-red-800'
+                                      ? 'bg-green-100 text-green-800'
+                                      : appointment.status === 'Pending'
+                                        ? 'bg-yellow-100 text-yellow-800'
+                                        : 'bg-red-100 text-red-800'
                                       }`}
                                   >
                                     {appointment.status}
