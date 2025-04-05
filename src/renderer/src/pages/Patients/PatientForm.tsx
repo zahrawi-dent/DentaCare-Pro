@@ -1,12 +1,15 @@
 import { createMemo, createSignal, JSX } from 'solid-js'
 
-export default function PatientForm(
-  props
-  //                      : {
-  //   // onSubmit: (patient: Patient) => void
-  //   patient?: Patient
-  // }
-): JSX.Element {
+type ErrorState = {
+  email?: string
+  phone?: string
+  general?: string
+}
+
+export default function PatientForm(props: {
+  onSubmit: (patient: any, onError: (error: any) => void) => void
+  patient?: any
+}): JSX.Element {
   const initialData = props.patient || {
     firstName: '',
     lastName: '',
@@ -22,29 +25,77 @@ export default function PatientForm(
   }
 
   const [form, setForm] = createSignal({ ...initialData })
+  const [errors, setErrors] = createSignal<ErrorState>({})
   const isEditMode = createMemo(() => !!props.patient)
 
-  const handleSubmit = (e): void => {
+  const handleSubmit = (e: Event): void => {
     e.preventDefault()
+    // Clear previous errors
+    setErrors({})
+
     const formData = form()
 
     // If in edit mode, use the existing ID, otherwise generate a new one
     const patientData = isEditMode() ? formData : { ...formData, id: Date.now().toString() }
 
-    props.onSubmit(patientData)
+    // Pass the form data and an error handler to the onSubmit function
+    props.onSubmit(patientData, handleSubmitError)
+  }
+
+  const handleSubmitError = (error: any): void => {
+    // Check error message to determine what constraint was violated
+    const errorMsg = error.message || String(error)
+
+    if (
+      errorMsg.includes('UNIQUE constraint failed') ||
+      errorMsg.includes('constraint violation')
+    ) {
+      if (errorMsg.toLowerCase().includes('email')) {
+        setErrors((prev) => ({ ...prev, email: 'This email is already registered' }))
+      }
+      if (errorMsg.toLowerCase().includes('phone')) {
+        setErrors((prev) => ({ ...prev, phone: 'This phone number is already registered' }))
+      }
+      // If we can't determine which field caused the error
+      if (!errorMsg.toLowerCase().includes('email') && !errorMsg.toLowerCase().includes('phone')) {
+        setErrors((prev) => ({ ...prev, general: 'A record with this information already exists' }))
+      }
+    } else {
+      // General error handling
+      setErrors((prev) => ({ ...prev, general: 'An error occurred while saving data' }))
+    }
   }
 
   const handleChange =
-    (field) =>
-      (e): void => {
+    (field: string) =>
+      (e: Event): void => {
+        const target = e.target as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+
+        // Clear error for this field when user starts typing
+        if (field === 'email' || field === 'phone' || field === 'general') {
+          setErrors((prev) => {
+            const newErrors = { ...prev }
+            if (field in newErrors) {
+              delete newErrors[field as keyof ErrorState]
+            }
+            return newErrors
+          })
+        }
+
         setForm({
           ...form(),
-          [field]: e.target.value
+          [field]: target.value
         })
       }
 
   return (
     <form onSubmit={handleSubmit} class="bg-white shadow-md rounded p-6">
+      {errors().general && (
+        <div class="mb-4 p-3 bg-red-100 text-red-700 border border-red-200 rounded">
+          {errors().general}
+        </div>
+      )}
+
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label class="block mb-1">First Name</label>
@@ -101,8 +152,9 @@ export default function PatientForm(
             value={form().phone}
             onInput={handleChange('phone')}
             required
-            class="w-full p-2 border rounded"
+            class={`w-full p-2 border rounded ${errors().phone ? 'border-red-500' : ''}`}
           />
+          {errors().phone && <p class="text-red-500 text-sm mt-1">{errors().phone}</p>}
         </div>
 
         <div>
@@ -111,8 +163,9 @@ export default function PatientForm(
             type="email"
             value={form().email}
             onInput={handleChange('email')}
-            class="w-full p-2 border rounded"
+            class={`w-full p-2 border rounded ${errors().email ? 'border-red-500' : ''}`}
           />
+          {errors().email && <p class="text-red-500 text-sm mt-1">{errors().email}</p>}
         </div>
       </div>
 

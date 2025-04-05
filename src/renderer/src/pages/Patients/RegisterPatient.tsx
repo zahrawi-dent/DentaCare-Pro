@@ -10,9 +10,19 @@ import PatientForm from './PatientForm'
 export default function RegisterPatient(): JSX.Element {
   const navigate = useNavigate()
   // argument is Patient type without id, createdAt and updatedAt
-  const handleRegister = (patient: Patient): void => {
-    window.dentalApi.createPatient(patient)
+  const handleRegister = async (patient: Patient, onError: (error: any) => void): void => {
+    // window.dentalApi.createPatient(patient)
     // go to patient details
+    try {
+      // Your existing code to save to SQLite
+      await window.dentalApi.createPatient(patient)
+      // Handle success
+    } catch (error) {
+      // Pass the error back to the form for handling
+      onError(error)
+      return
+    }
+
     navigate(`/patients/${patient.id}`)
   }
 
