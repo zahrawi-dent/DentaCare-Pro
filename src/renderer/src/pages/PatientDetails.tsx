@@ -1,19 +1,42 @@
 import { createSignal, onMount, For, JSX } from 'solid-js'
-import { A, useParams } from '@solidjs/router'
+import { A, useNavigate, useParams } from '@solidjs/router'
 import { mockApi } from '../mockApi'
-import { Appointment, Invoice, Patient, Treatment } from '../types'
+import { Appointment, Invoice, Patient, Treatment } from '@shared/types'
+import DeletePatientDialog from '@renderer/pages/Patients/DeletePatientDialog'
 
 export default function PatientDetails(): JSX.Element {
   const params = useParams()
+  const navigate = useNavigate()
   const [patient, setPatient] = createSignal<Patient | null>(null)
+  const [deleteDialogOpen, setDeleteDialogOpen] = createSignal(false)
+
   const [activeTab, setActiveTab] = createSignal('profile')
+  // TODO: Replace with real data
   const [appointments, setAppointments] = createSignal<Appointment[]>([])
+  // TODO: Replace with real data
   const [treatments, setTreatments] = createSignal<Treatment[]>([])
+  // TODO: Replace with real data
   const [invoices, setInvoices] = createSignal<Invoice[]>([])
+
+  const handleDeletePatient = async (): Promise<void> => {
+    try {
+      await window.dentalApi.deletePatient(parseInt(params.id))
+      // Navigate back to patients list after deletion
+      navigate('/patients')
+    } catch (error) {
+      console.error('Error deleting patient', error)
+      // Handle error - show a notification or message
+    }
+  }
 
   onMount(async () => {
     try {
-      const patientData: Patient = await mockApi.getPatient(parseInt(params.id))
+      const patientData: Patient | undefined = await window.dentalApi.getPatientById(
+        parseInt(params.id)
+      )
+      if (!patientData) {
+        throw new Error('Patient not found')
+      }
       setPatient(patientData)
 
       // In a real app, these would be separate API calls
@@ -76,18 +99,19 @@ export default function PatientDetails(): JSX.Element {
       {patient() ? (
         <>
           {/* Patient Header */}
+          {/* Patient Header */}
           <div class="bg-white shadow rounded-lg p-6 mb-6">
             <div class="flex items-center">
               <div class="flex-shrink-0">
                 <div class="h-16 w-16 rounded-full bg-indigo-100 flex items-center justify-center text-xl text-indigo-800 font-bold">
-                  {patient()
-                    ?.name.split(' ')
-                    .map((n) => n[0])
-                    .join('')}
+                  {patient()?.firstName[0]}
+                  {patient()?.lastName[0]}
                 </div>
               </div>
               <div class="ml-6">
-                <h1 class="text-2xl font-bold text-gray-900">{patient()?.name}</h1>
+                <h1 class="text-2xl font-bold text-gray-900">
+                  {patient()?.firstName} {patient()?.lastName}
+                </h1>
                 <div class="mt-1 flex flex-col sm:flex-row sm:flex-wrap sm:mt-0 sm:space-x-6">
                   <div class="mt-2 flex items-center text-sm text-gray-500">
                     <svg
@@ -126,10 +150,18 @@ export default function PatientDetails(): JSX.Element {
                 </div>
               </div>
               <div class="ml-auto flex">
-                <button class="mr-3 px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                <A
+                  href={`/edit-patient/${params.id}`}
+                  class="mr-3 px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                >
                   Edit Patient
+                </A>
+                <button
+                  onClick={() => setDeleteDialogOpen(true)}
+                  class="mr-3 px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700"
+                >
+                  Delete Patient
                 </button>
-                {/* TODO: make the patient automatically selected, pass and id? */}
                 <A
                   href="/new-appointment"
                   class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
@@ -140,6 +172,14 @@ export default function PatientDetails(): JSX.Element {
             </div>
           </div>
 
+          {/* Delete Patient Confirmation Dialog */}
+          <DeletePatientDialog
+            isOpen={deleteDialogOpen()}
+            onClose={() => setDeleteDialogOpen(false)}
+            onConfirm={handleDeletePatient}
+            patientName={`${patient()?.firstName} ${patient()?.lastName}`}
+          />
+
           {/* Tabs */}
           <div class="mb-6">
             <div class="border-b border-gray-200">
@@ -149,8 +189,8 @@ export default function PatientDetails(): JSX.Element {
                     <button
                       onClick={() => setActiveTab(tab.id)}
                       class={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab() === tab.id
-                        ? 'border-indigo-500 text-indigo-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                          ? 'border-indigo-500 text-indigo-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                         }`}
                     >
                       {tab.label}
@@ -172,17 +212,19 @@ export default function PatientDetails(): JSX.Element {
                     <div class="space-y-4">
                       <div>
                         <p class="text-sm font-medium text-gray-500">Full Name</p>
-                        <p class="mt-1 text-sm text-gray-900">{patient()?.name}</p>
+                        <p class="mt-1 text-sm text-gray-900">
+                          {patient()?.firstName} {patient()?.lastName}
+                        </p>
                       </div>
                       <div>
                         <p class="text-sm font-medium text-gray-500">Date of Birth</p>
                         <p class="mt-1 text-sm text-gray-900">
-                          {new Date(patient()!.dob!).toLocaleDateString()}
+                          {new Date(patient()!.dateOfBirth!).toLocaleDateString()}
                         </p>
                       </div>
                       <div>
                         <p class="text-sm font-medium text-gray-500">Gender</p>
-                        <p class="mt-1 text-sm text-gray-900">{patient()?.sex}</p>
+                        <p class="mt-1 text-sm text-gray-900">{patient()?.gender}</p>
                       </div>
                       <div>
                         <p class="text-sm font-medium text-gray-500">Phone</p>
@@ -205,22 +247,22 @@ export default function PatientDetails(): JSX.Element {
                       <div>
                         <p class="text-sm font-medium text-gray-500">Insurance Provider</p>
                         {/* <p class="mt-1 text-sm text-gray-900">{patient().insurance || 'None'}</p> */}
-                        <p class="mt-1 text-sm text-gray-900">Insurance ....</p>
+                        <p class="mt-1 text-sm text-gray-900">{patient()?.insuranceProvider}</p>
                       </div>
                       <div>
                         <p class="text-sm font-medium text-gray-500">Allergies</p>
                         {/* <p class="mt-1 text-sm text-gray-900">{patient().allergies || 'None reported'}</p> */}
-                        <p class="mt-1 text-sm text-gray-900">Allergies ....</p>
+                        <p class="mt-1 text-sm text-gray-900">{patient()?.allergies}</p>
                       </div>
                       <div>
-                        <p class="text-sm font-medium text-gray-500">Medical Conditions</p>
+                        <p class="text-sm font-medium text-gray-500">Medical History</p>
                         {/* <p class="mt-1 text-sm text-gray-900">{patient().medicalConditions || 'None reported'}</p> */}
-                        <p class="mt-1 text-sm text-gray-900">Medical Conditions ....</p>
+                        <p class="mt-1 text-sm text-gray-900">{patient()?.medicalHistory}</p>
                       </div>
                       <div>
                         <p class="text-sm font-medium text-gray-500">Notes</p>
                         {/* <p class="mt-1 text-sm text-gray-900">{patient().notes || 'No additional notes'}</p> */}
-                        <p class="mt-1 text-sm text-gray-900">Notes ....</p>
+                        <p class="mt-1 text-sm text-gray-900">{patient()?.notes}</p>
                       </div>
                     </div>
                   </div>
@@ -287,10 +329,10 @@ export default function PatientDetails(): JSX.Element {
                             <td class="px-6 py-4 whitespace-nowrap">
                               <span
                                 class={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${appointment.status === 'Confirmed'
-                                  ? 'bg-green-100 text-green-800'
-                                  : appointment.status === 'Pending'
-                                    ? 'bg-yellow-100 text-yellow-800'
-                                    : 'bg-red-100 text-red-800'
+                                    ? 'bg-green-100 text-green-800'
+                                    : appointment.status === 'Pending'
+                                      ? 'bg-yellow-100 text-yellow-800'
+                                      : 'bg-red-100 text-red-800'
                                   }`}
                               >
                                 {appointment.status}
@@ -447,10 +489,10 @@ export default function PatientDetails(): JSX.Element {
                             <td class="px-6 py-4 whitespace-nowrap">
                               <span
                                 class={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${invoice.status === 'Paid'
-                                  ? 'bg-green-100 text-green-800'
-                                  : invoice.status === 'Pending'
-                                    ? 'bg-yellow-100 text-yellow-800'
-                                    : 'bg-red-100 text-red-800'
+                                    ? 'bg-green-100 text-green-800'
+                                    : invoice.status === 'Pending'
+                                      ? 'bg-yellow-100 text-yellow-800'
+                                      : 'bg-red-100 text-red-800'
                                   }`}
                               >
                                 {invoice.status}

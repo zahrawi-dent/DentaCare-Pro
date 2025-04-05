@@ -3,24 +3,24 @@ import { relations, sql } from 'drizzle-orm'
 import { sqliteTable, text, integer, real, index, uniqueIndex } from 'drizzle-orm/sqlite-core'
 
 // Define TypeScript interfaces for each table with null handling
-export interface Patient {
-  id: number
-  firstName: string
-  lastName: string
-  // TODO: use age(integer) instead?
-  dateOfBirth: string
-  gender: string
-  phone: string
-  email: string | null
-  address: string | null
-  insuranceProvider: string | null
-  insuranceNumber: string | null
-  medicalHistory: string | null
-  allergies: string | null
-  notes: string | null
-  createdAt: number | Date // SQLite's unixepoch() returns seconds
-  updatedAt: number | Date // SQLite's unixepoch() returns seconds
-}
+// export interface Patient {
+//   id: number
+//   firstName: string
+//   lastName: string
+//   // TODO: use age(integer) instead?
+//   dateOfBirth: string
+//   gender: string
+//   phone: string
+//   email: string | null
+//   address: string | null
+//   insuranceProvider: string | null
+//   insuranceNumber: string | null
+//   medicalHistory: string | null
+//   allergies: string | null
+//   notes: string | null
+//   createdAt: number | Date // SQLite's unixepoch() returns seconds
+//   updatedAt: number | Date // SQLite's unixepoch() returns seconds
+// }
 
 export interface Dentist {
   id: number

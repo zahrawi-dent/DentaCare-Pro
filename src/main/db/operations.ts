@@ -8,13 +8,14 @@ import {
   treatmentProcedures,
   treatments,
   payments,
-  Patient,
   Dentist,
   Appointment,
   TreatmentProcedure,
   Treatment,
   Payment
 } from './schema'
+
+import { Patient } from '@shared/types'
 
 // inventoryItems,
 // dentalCharts,

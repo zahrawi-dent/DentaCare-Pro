@@ -8,6 +8,7 @@ import RegisterPatient from './pages/Patients/RegisterPatient'
 import NewAppointment from './pages/Patients/NewAppointment'
 import CreateInvoice from './pages/Patients/CreateInvoice'
 import ViewSchedule from './pages/ViewSchedule'
+import { EditPatient } from './pages/Patients/EditPatient'
 
 const Dashboard = lazy(() => import('./pages/Dashboard'))
 const PatientDetails = lazy(() => import('./pages/PatientDetails'))
@@ -32,6 +33,7 @@ if (rootElement) {
           {/* <Route path="/dashboard" component={Dashboard} /> */}
           <Route path="/patients" component={PatientsList} />
           <Route path="/patients/:id" component={PatientDetails} />
+          <Route path="/edit-patient/:id" component={EditPatient} />
           <Route path="/appointments" component={Appointments} />
           <Route path="/billing" component={Billing} />
           <Route path="/settings" component={Settings} />
