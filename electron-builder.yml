@@ -1,5 +1,7 @@
-appId: com.electron.app
-productName: zahrawi-vite
+appId: com.zahrawi-dental-care.app
+productName: Zahrawi Dental Care
+description: Zahrawi Dental Care App for managing your dental clinic for Windows, Linux and macOS
+version: 1.0.0
 directories:
   buildResources: build
 files:
@@ -12,7 +14,7 @@ files:
 asarUnpack:
   - resources/**
 win:
-  executableName: zahrawi-vite
+  executableName: ${name}
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}
@@ -21,8 +23,8 @@ nsis:
 mac:
   entitlementsInherit: build/entitlements.mac.plist
   extendInfo:
-    - NSCameraUsageDescription: Application requests access to the device's camera.
-    - NSMicrophoneUsageDescription: Application requests access to the device's microphone.
+    # - NSCameraUsageDescription: Application requests access to the device's camera.
+    # - NSMicrophoneUsageDescription: Application requests access to the device's microphone.
     - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
     - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
   notarize: false
@@ -31,9 +33,10 @@ dmg:
 linux:
   target:
     - AppImage
-    # - snap
-    # - deb
-  maintainer: electronjs.org
+    - snap
+    - deb
+    - flatpak
+  maintainer: github.com/zahrawi-dent
   category: Utility
 appImage:
   artifactName: ${name}-${version}.${ext}

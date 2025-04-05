@@ -1,0 +1,128 @@
+name: Build Electron App
+
+on:
+  push:
+    branches:
+      - main # Build on pushes to the main branch
+    tags:
+      - 'v*.*.*' # Build and release on version tags (e.g., v1.0.0)
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  build:
+    # Run builds on macOS, Windows, and Linux
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18 # Specify your desired Node.js version
+          cache: 'pnpm' # Or 'yarn' if you use Yarn
+
+      - name: Install Dependencies
+        run: pnpm ci # Use 'npm ci' for faster, reliable installs; use 'yarn install --frozen-lockfile' for Yarn
+
+      # --- macOS Build Configuration ---
+      - name: Build macOS
+        uses: samuelmeuli/electron-builder-action@v1
+        if: matrix.os == 'macos-latest'
+        with:
+          # GitHub token, automatically provided by GitHub Actions
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+          # Path to package.json (optional, defaults to .)
+          # package_root: "."
+
+          # Optional: Specify Electron Builder args if needed (targets are better in package.json)
+          # electron_builder_args: "--mac --publish always"
+
+          # Set to true to create a GitHub release (useful on tag pushes)
+          # Consider making this conditional: release: startsWith(github.ref, 'refs/tags/')
+          release: startsWith(github.ref, 'refs/tags/')
+
+          # macOS code signing certificate and password
+          mac_certs: ${{ secrets.MAC_CERTS }}
+          mac_certs_password: ${{ secrets.MAC_CERTS_PASSWORD }}
+
+          # Optional: Apple ID credentials for notarization (if configured in electron-builder)
+          # Requires electron-builder >= 21.2.0
+          # apple_id: ${{ secrets.APPLE_ID }}
+          # apple_id_password: ${{ secrets.APPLE_ID_PASSWORD }} # App-specific password recommended
+          # apple_team_id: ${{ secrets.APPLE_TEAM_ID }} # Needed if account is in multiple teams
+        env:
+          # Set common env vars for electron-builder signing/notarization
+          CSC_LINK: ${{ secrets.MAC_CERTS }} # electron-builder also checks CSC_LINK for macOS certs
+          CSC_KEY_PASSWORD: ${{ secrets.MAC_CERTS_PASSWORD }}
+          # APPLEID: ${{ secrets.APPLE_ID }} # Electron-builder convention
+          # APPLEIDPASS: ${{ secrets.APPLE_ID_PASSWORD }} # Electron-builder convention
+          # TEAM_ID: ${{ secrets.APPLE_TEAM_ID }} # Electron-builder convention
+          # Prevent Code Sign error: resource fork, Finder information, or similar detritus not allowed
+          # Might be needed depending on your project setup
+          # CSC_IDENTITY_AUTO_DISCOVERY: false
+
+
+      # --- Windows Build Configuration ---
+      - name: Build Windows
+        uses: samuelmeuli/electron-builder-action@v1
+        if: matrix.os == 'windows-latest'
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # package_root: "."
+          # electron_builder_args: "--win --publish always"
+          release: startsWith(github.ref, 'refs/tags/')
+
+          # Windows code signing certificate and password
+          # CSC_LINK: Publicly accessible URL to the certificate OR base64 encoded certificate file
+          csc_link: ${{ secrets.CSC_LINK }}
+          csc_key_password: ${{ secrets.CSC_KEY_PASSWORD }}
+        env:
+          # Set common env vars for electron-builder signing
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+
+      # --- Linux Build Configuration ---
+      - name: Build Linux
+        uses: samuelmeuli/electron-builder-action@v1
+        if: matrix.os == 'ubuntu-latest'
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # package_root: "."
+          # electron_builder_args: "--linux --publish always"
+          release: startsWith(github.ref, 'refs/tags/')
+
+          # Linux code signing (less common for AppImage/Snap/Flatpak via electron-builder itself)
+          # If you need specific signing for these formats, it often happens *after* build
+          # or requires additional configuration/tools (e.g., Snapcraft login, GPG keys).
+          # linux_certs: ${{ secrets.LINUX_CERTS }} # Placeholder if needed
+          # linux_certs_password: ${{ secrets.LINUX_CERTS_PASSWORD }} # Placeholder if needed
+        # env:
+          # Set Linux-specific env vars if needed
+          # CSC_LINK_LINUX: ${{ secrets.LINUX_CERTS }} # Example if electron-builder supports it
+          # CSC_KEY_PASSWORD_LINUX: ${{ secrets.LINUX_CERTS_PASSWORD }} # Example
+
+      # --- Optional: Upload Artifacts (useful for testing or non-release builds) ---
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        # Run this step even if the release didn't happen (e.g., on main branch push)
+        # if: success() || failure() # Or customize condition
+        with:
+          name: ${{ matrix.os }}-build # Name artifact based on OS
+          path: | # Use multi-line path to capture all build outputs
+            dist/**/*.exe
+            dist/**/*.msi
+            dist/**/*.dmg
+            dist/**/*.zip
+            dist/**/*.AppImage
+            dist/**/*.snap
+            dist/**/*.flatpak
+            dist/**/*.deb
+            dist/**/*.rpm
+            # Add other potential output file extensions
